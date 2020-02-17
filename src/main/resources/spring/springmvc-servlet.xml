@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:mvc="http://www.springframework.org/schema/mvc"
+       xmlns:context="http://www.springframework.org/schema/context"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd http://www.springframework.org/schema/mvc http://www.springframework.org/schema/mvc/spring-mvc.xsd http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd">
+
+    <context:component-scan base-package="cn.appsys.controller"/>
+
+    <!--配置拦截器  -->
+    <mvc:interceptors>
+        <mvc:interceptor>
+            <mvc:mapping path="/manager/backend/**"/>
+            <mvc:mapping path="/dev/flatform/**"/>
+            <bean class="cn.appsys.interceptor.SystemInterceptor"/>
+        </mvc:interceptor>
+    </mvc:interceptors>
+
+    <!--过滤静态资源-->
+    <mvc:default-servlet-handler/>
+    <mvc:annotation-driven content-negotiation-manager="contentNegotiationManager">
+        <mvc:message-converters>
+            <!--引用jackson的消息转换器 解决json字符串中的日期格式问题-->
+            <ref bean="jackson2HttpMessageConverter"/>
+        </mvc:message-converters>
+    </mvc:annotation-driven>
+
+
+    <!--配置jackson日期格式问题-->
+    <bean id="jackson2HttpMessageConverter"
+          class="org.springframework.http.converter.json.MappingJackson2HttpMessageConverter">
+        <property name="objectMapper" ref="objectMapper"/>
+    </bean>
+    <bean id="objectMapper"
+          class="org.springframework.http.converter.json.Jackson2ObjectMapperFactoryBean">
+        <property name="indentOutput" value="true"/>
+        <property name="simpleDateFormat" value="yyyy-MM-dd HH:mm:ss"/>
+    </bean>
+    <!--jackson end-->
+
+    <!--配置多视图解析器-->
+    <bean id="contentNegotiationManager"
+          class="org.springframework.web.accept.ContentNegotiationManagerFactoryBean">
+        <property name="mediaTypes">
+            <value>
+                json=application/json
+                xml=application/xml
+                html=text/html
+            </value>
+        </property>
+    </bean>
+
+
+    <!--视图解析器-->
+    <mvc:view-resolvers>
+        <mvc:jsp prefix="/WEB-INF/jsp/" suffix=".jsp"/>
+    </mvc:view-resolvers>
+
+
+    <!--文件上传解析器-->
+    <bean id="multipartResolver"
+          class="org.springframework.web.multipart.commons.CommonsMultipartResolver">
+        <property name="defaultEncoding" value="utf-8"/>
+        <property name="maxUploadSize" value="5000000"/>
+    </bean>
+
+</beans>
